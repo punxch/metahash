@@ -57,10 +57,10 @@ fn main() -> Result<()> {
     let args = Args::parse();
     let url = UrlBuf::from(args.file);
     let file = File::from_url(&url)?;
-    println!("File metadata: {:?}", file);
+    // println!("File metadata: {:?}", file);
     
     let hash = calculate_hash(&file, args.skip);
-    println!("Metadata hash: {:x}", hash);
+    println!("{:x}", hash);
     
     Ok(())
 }
