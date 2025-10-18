@@ -5,6 +5,8 @@ use std::{
 
 use crate::cha::Cha;
 use crate::url::buf::UrlBuf;
+use crate::url::traits::UrlLike;
+
 
 #[derive(Debug, Clone)]
 pub struct File {
@@ -15,7 +17,7 @@ pub struct File {
 impl File {
     /// Create File from UrlBuf (attempt to get underlying path)
     pub fn from_url(url: &UrlBuf) -> std::io::Result<Self> {
-        let path = url.into_path().ok_or_else(|| {
+        let path = url.as_path().ok_or_else(|| {
             std::io::Error::new(std::io::ErrorKind::InvalidInput, "url cannot be converted to path")
         })?;
         let metadata = path.metadata()?;
