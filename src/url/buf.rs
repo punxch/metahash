@@ -73,10 +73,10 @@ impl UrlBuf {
 		// }; &U
 	}
 
-	// #[inline]
-	// pub fn into_path(self) -> Option<PathBuf> {
-	// 	Some(self.loc.into_path()).filter(|_| !self.scheme.is_virtual())
-	// }
+	#[inline]
+	pub fn into_path(self) -> Option<PathBuf> {
+		Some(self.loc.into_path()).filter(|_| !self.scheme.is_virtual())
+	}
 
 	// #[inline]
 	// pub fn set_name(&mut self, name: impl AsRef<OsStr>) { self.loc.set_name(name); }

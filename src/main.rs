@@ -7,8 +7,9 @@ use anyhow::Result;
 use clap::Parser;
 use metahash::{cha, file};
 use metahash::url::buf::UrlBuf;
-
+use soft_canonicalize::soft_canonicalize;
 use file::File;
+
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -55,7 +56,9 @@ fn calculate_hash(file: &File, skip: usize) -> u128 {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let url = UrlBuf::from(args.file);
+    let path = args.file;
+    let abs_path = soft_canonicalize(&path).expect("Wrong path!");
+    let url = UrlBuf::from(abs_path);
     let file = File::from_url(&url)?;
     // println!("File metadata: {:?}", file);
     

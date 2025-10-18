@@ -36,6 +36,9 @@ impl Hash for LocBuf {
 }
 
 impl LocBuf {
-#[inline]
-pub fn as_loc<'a>(&'a self) -> Loc<'a> { Loc::from(self) }
+	#[inline]
+	pub fn as_loc<'a>(&'a self) -> Loc<'a> { Loc::from(self) }
+
+	#[inline]
+	pub fn into_path(self) -> PathBuf { self.inner }
 }
