@@ -1,0 +1,10 @@
+[package]
+name = "metahash"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+twox-hash           = { version = "2.1.2", default-features = false, features = [ "std", "random", "xxhash3_128" ] }
+clap = { version = "4.5.1", features = ["derive"] }
+anyhow = "1.0.79"
+filetime = "0.2.23"
