@@ -6,6 +6,7 @@ use std::{
 use anyhow::Result;
 use clap::Parser;
 use metahash::{cha, file};
+use metahash::url::buf::UrlBuf;
 
 use file::File;
 
@@ -49,8 +50,8 @@ fn calculate_hash(file: &File) -> u128 {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    
-    let file = File::from_path(&args.file)?;
+    let url = UrlBuf::from(args.file);
+    let file = File::from_url(&url)?;
     println!("File metadata: {:?}", file);
     
     let hash = calculate_hash(&file);

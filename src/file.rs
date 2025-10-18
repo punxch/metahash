@@ -1,33 +1,36 @@
 use std::{
     hash::{Hash, Hasher},
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 use crate::cha::Cha;
+use crate::url::buf::UrlBuf;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct File {
-    pub path: PathBuf,
+    pub url: UrlBuf,
     pub cha: Cha,
 }
 
 impl File {
-    pub fn from_path(path: &Path) -> std::io::Result<Self> {
+    /// Create File from UrlBuf (attempt to get underlying path)
+    pub fn from_url(url: &UrlBuf) -> std::io::Result<Self> {
+        let path = url.into_path().ok_or_else(|| {
+            std::io::Error::new(std::io::ErrorKind::InvalidInput, "url cannot be converted to path")
+        })?;
         let metadata = path.metadata()?;
         Ok(Self {
-            path: path.to_owned(),
+            url: url.clone(),
             cha: Cha::from_metadata(&metadata),
         })
     }
 }
-
 impl Hash for File {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.path.hash(state);
+        self.url.hash(state);
         self.cha.len.hash(state);
         self.cha.btime.hash(state);
         self.cha.ctime.hash(state);
-        // 0usize.hash(state);
         self.cha.mtime.hash(state);
     }
 }
