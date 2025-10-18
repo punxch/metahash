@@ -16,6 +16,10 @@ struct Args {
     /// File path to calculate metadata hash
     #[arg(value_name = "FILE")]
     file: PathBuf,
+
+    /// Skip value for hash calculation
+    #[arg(long, default_value = "0")]
+    skip: usize,
 }
 
 struct Twox128(twox_hash::XxHash3_128);
@@ -42,9 +46,10 @@ impl Hasher for Twox128 {
     }
 }
 
-fn calculate_hash(file: &File) -> u128 {
+fn calculate_hash(file: &File, skip: usize) -> u128 {
     let mut hasher = Twox128::default();
     file.hash(&mut hasher);
+    skip.hash(&mut hasher);
     hasher.finish_128()
 }
 
@@ -54,8 +59,7 @@ fn main() -> Result<()> {
     let file = File::from_url(&url)?;
     println!("File metadata: {:?}", file);
     
-    let hash = calculate_hash(&file);
-    // println!("Metadata hash: {:032x}", hash);
+    let hash = calculate_hash(&file, args.skip);
     println!("Metadata hash: {:x}", hash);
     
     Ok(())
