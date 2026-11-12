@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'bytes.dart';
 import 'location.dart';
 import 'path.dart';
 
@@ -53,7 +54,7 @@ final class Url {
       return Url.regular(MetaPath.fromBytes(bytes, style: style));
     final escaped = marker > 0 && bytes[marker - 1] == 126;
     final kind = Scheme.parseKind(
-      utf8.decode(bytes.sublist(0, escaped ? marker - 1 : marker)),
+      decodeUtf8(bytes.sublist(0, escaped ? marker - 1 : marker)),
     );
     var start = marker + 3;
     if (kind == SchemeKind.regular) {
@@ -202,7 +203,7 @@ int _protocolEnd(List<int> bytes) {
       : last != -1
       ? last
       : bytes.length;
-  final domain = utf8.decode(_percentDecode(bytes.sublist(0, domainEnd)));
+  final domain = decodeUtf8(_percentDecode(bytes.sublist(0, domainEnd)));
   if (last == -1) return (domain, null, null);
   final finalCount = count(last + 1, bytes.length);
   if (previous == -1) return (domain, finalCount, null);

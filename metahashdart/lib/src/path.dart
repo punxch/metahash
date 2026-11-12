@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'bytes.dart';
+
 enum PathStyle { posix, windows }
 
 enum PathComponentKind { prefix, root, current, parent, normal }
@@ -375,7 +377,7 @@ final class MetaPath {
   /// Decodes a Unicode path, replacing invalid POSIX sequences by default.
   String text({bool allowMalformed = true}) => style == PathStyle.windows
       ? _decodeWtf8(bytes, allowMalformed: allowMalformed)
-      : _decodeUtf8(bytes, allowMalformed: allowMalformed);
+      : decodeUtf8(bytes, allowMalformed: allowMalformed);
 
   @override
   String toString() => text();
@@ -429,7 +431,7 @@ String _decodeWtf8(Uint8List bytes, {required bool allowMalformed}) {
         third > 0xbf)
       continue;
     text.write(
-      _decodeUtf8(
+      decodeUtf8(
         Uint8List.sublistView(bytes, start, i),
         allowMalformed: allowMalformed,
       ),
@@ -439,21 +441,10 @@ String _decodeWtf8(Uint8List bytes, {required bool allowMalformed}) {
     start = i + 1;
   }
   text.write(
-    _decodeUtf8(
+    decodeUtf8(
       Uint8List.sublistView(bytes, start),
       allowMalformed: allowMalformed,
     ),
   );
   return text.toString();
-}
-
-String _decodeUtf8(Uint8List bytes, {required bool allowMalformed}) {
-  final decoded = utf8.decode(bytes, allowMalformed: allowMalformed);
-  // Dart's UTF-8 decoder consumes a leading BOM. Paths treat it as a character.
-  final hasBom =
-      bytes.length >= 3 &&
-      bytes[0] == 0xef &&
-      bytes[1] == 0xbb &&
-      bytes[2] == 0xbf;
-  return hasBom ? '\uFEFF$decoded' : decoded;
 }

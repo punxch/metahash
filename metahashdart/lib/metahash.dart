@@ -9,5 +9,7 @@ export 'src/path.dart'
         PathStyle,
         WindowsPrefix,
         WindowsPrefixKind;
+export 'src/pool.dart' show InternedSymbol, Pool;
+export 'src/ro_cell.dart' show RoCell;
 export 'src/url.dart' show Scheme, SchemeKind, Url;
 export 'src/xxh3.dart' show xxh3_128;

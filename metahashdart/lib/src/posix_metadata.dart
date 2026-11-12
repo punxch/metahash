@@ -7,16 +7,14 @@ import 'native_memory.dart';
 import 'path.dart';
 
 final _libc = DynamicLibrary.process();
-final _errnoLocation = _libc
-    .lookupFunction<Pointer<Int32> Function(), Pointer<Int32> Function()>(
-      Platform.isMacOS ? '__error' : '__errno_location',
-      isLeaf: true,
-    );
-final _realpath = _libc
-    .lookupFunction<
-      Pointer<Uint8> Function(Pointer<Uint8>, Pointer<Uint8>),
-      Pointer<Uint8> Function(Pointer<Uint8>, Pointer<Uint8>)
-    >('realpath');
+final _errnoLocation =
+    _libc.lookupFunction<Pointer<Int32> Function(), Pointer<Int32> Function()>(
+  Platform.isMacOS ? '__error' : '__errno_location',
+  isLeaf: true,
+);
+final _realpath = _libc.lookupFunction<
+    Pointer<Uint8> Function(Pointer<Uint8>, Pointer<Uint8>),
+    Pointer<Uint8> Function(Pointer<Uint8>, Pointer<Uint8>)>('realpath');
 
 typedef _StatNative = Int32 Function(Pointer<Uint8>, Pointer<Void>);
 typedef _StatDart = int Function(Pointer<Uint8>, Pointer<Void>);
@@ -25,18 +23,17 @@ final _stat = _libc.lookupFunction<_StatNative, _StatDart>(
   Platform.isMacOS && _libc.providesSymbol(r'stat$INODE64')
       ? r'stat$INODE64'
       : Platform.isLinux && _libc.providesSymbol('stat64')
-      ? 'stat64'
-      : 'stat',
+          ? 'stat64'
+          : 'stat',
 );
 
-typedef _StatxNative =
-    Int32 Function(Int32, Pointer<Uint8>, Int32, Uint32, Pointer<_Statx>);
-typedef _StatxDart =
-    int Function(int, Pointer<Uint8>, int, int, Pointer<_Statx>);
+typedef _StatxNative = Int32 Function(
+    Int32, Pointer<Uint8>, Int32, Uint32, Pointer<_Statx>);
+typedef _StatxDart = int Function(
+    int, Pointer<Uint8>, int, int, Pointer<_Statx>);
 
 // Rust uses statx on Linux glibc targets when libc and the kernel provide it.
-final _statx =
-    _libc.providesSymbol('gnu_get_libc_version') &&
+final _statx = _libc.providesSymbol('gnu_get_libc_version') &&
         _libc.providesSymbol('statx')
     ? _libc.lookupFunction<_StatxNative, _StatxDart>('statx')
     : null;
@@ -94,9 +91,8 @@ final class _Statx extends Struct {
   try {
     final path = canonicalize ? _canonicalize(memory, input, errno) : input;
     final filename = _nativePath(memory, path);
-    final info = Platform.isLinux
-        ? _readStatx(memory, filename, path, errno)
-        : null;
+    final info =
+        Platform.isLinux ? _readStatx(memory, filename, path, errno) : null;
     return (path, info ?? _readStat(memory, filename, path, errno));
   } finally {
     memory.close();
@@ -233,7 +229,12 @@ Cha _readStat(
 }
 
 MetaTimestamp? _timestamp(int seconds, int nanos, {bool apple = false}) {
-  if (apple && seconds <= 0 && nanos < 0 && nanos > -1000000000) {
+  const minI64 = -9223372036854775808;
+  if (apple &&
+      seconds > minI64 &&
+      seconds <= 0 &&
+      nanos < 0 &&
+      nanos > -1000000000) {
     return MetaTimestamp(BigInt.from(seconds) - BigInt.one, nanos + 1000000000);
   }
   if (nanos < 0 || nanos >= 1000000000) return null;
