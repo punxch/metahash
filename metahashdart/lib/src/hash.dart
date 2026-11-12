@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'metadata.dart';
+import 'native_metadata.dart';
 import 'path.dart';
 import 'url.dart';
 import 'xxh3.dart';
@@ -16,23 +18,53 @@ final class RustHashTarget {
 
   static const windows64 = RustHashTarget(pathStyle: PathStyle.windows);
   static const unix64 = RustHashTarget(pathStyle: PathStyle.posix);
+  static final host = RustHashTarget(
+    pathStyle: hostPathStyle,
+    wordBytes: sizeOf<IntPtr>(),
+    endian: Endian.host,
+  );
 
   final PathStyle pathStyle;
   final int wordBytes;
   final Endian endian;
 }
 
-/// A metahash URL paired with a metadata snapshot supplied by the caller.
+/// A metahash URL paired with a file metadata snapshot.
 final class MetaFile {
-  const MetaFile(this.url, this.cha);
+  const MetaFile(this.url, this.cha) : _target = null;
+  const MetaFile._local(this.url, this.cha, this._target);
+
+  /// Resolves a local path and reads its metadata with the host OS APIs.
+  factory MetaFile.fromPath(String path) =>
+      MetaFile.fromOsPath(MetaPath(path, style: hostPathStyle));
+
+  /// Like [MetaFile.fromPath], with access to raw path bytes.
+  factory MetaFile.fromOsPath(MetaPath path) {
+    final (resolved, metadata) = readMetadata(path, canonicalize: true);
+    return MetaFile._local(
+      Url.regular(resolved),
+      metadata,
+      RustHashTarget.host,
+    );
+  }
+
+  /// Reads metadata for a local URL, keeping the original URL in the hash.
+  factory MetaFile.fromUrl(Url url) {
+    final path = url.asPath;
+    if (path == null)
+      throw ArgumentError('URL cannot be converted to a local path');
+    final (_, metadata) = readMetadata(path, canonicalize: false);
+    return MetaFile._local(url, metadata, RustHashTarget.host);
+  }
 
   final Url url;
   final Cha cha;
+  final RustHashTarget? _target;
 
   /// Bytes written by Rust's File::hash followed by skip.hash.
   Uint8List hashInput({BigInt? skip, RustHashTarget? target}) {
     final path = url.loc.path;
-    final layout = target ?? RustHashTarget(pathStyle: path.style);
+    final layout = target ?? _target ?? RustHashTarget(pathStyle: path.style);
     if (layout.pathStyle != path.style) {
       throw ArgumentError('Hash target and path must use the same path style');
     }
