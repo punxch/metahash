@@ -33,6 +33,8 @@ void main() {
 
 ## 验证
 
+推送到 `main` 或创建、更新以 `main` 为目标的 PR 时，GitHub Actions 会在 Windows x64、Ubuntu x64 和 arm64、macOS x64 和 arm64 上自动运行原生对照。
+
 ```sh
 dart analyze
 dart run test/xxh3_test.dart
