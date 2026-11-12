@@ -3,8 +3,9 @@ name: metahash native parity
 on:
   workflow_dispatch:
   push:
-    branches:
-      - 'codex/metahash-native-*'
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
@@ -14,10 +15,16 @@ jobs:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15-intel, macos-15]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15-intel, macos-15, windows-2025]
+        include:
+          - os: windows-2025
+            exe_suffix: .exe
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -27,13 +34,15 @@ jobs:
           sdk: '3.11.5'
       - name: Build Rust CLI and metadata reference
         run: |
-          uname -sm
+          printf '%s %s\n' "$RUNNER_OS" "$RUNNER_ARCH"
           rustc +stable --version
           cargo +stable build --bin metahash --example native_reference
       - name: Compare Dart and Rust on the same files
         working-directory: metahashdart
+        env:
+          EXE_SUFFIX: ${{ matrix.exe_suffix }}
         run: |
           dart --version
           dart pub get --offline
           dart analyze
-          dart run test/native_test.dart ../target/debug/metahash ../target/debug/examples/native_reference
+          dart run test/native_test.dart "../target/debug/metahash${EXE_SUFFIX}" "../target/debug/examples/native_reference${EXE_SUFFIX}"
