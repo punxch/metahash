@@ -29,7 +29,7 @@ void main() {
 - Windows 通过 Win32 文件句柄读取大小、创建和修改时间，保留 FILETIME 的 100 纳秒精度。
 - Linux 使用 `statx` 读取纳秒级元数据，并在 x64 和 arm64 上支持 `stat64` 回退。macOS x64 和 arm64 使用 Darwin 的 64 位 inode 布局。
 - Rust 的路径和时间编码依赖操作系统、指针宽度和字节序。文件 API 默认使用当前平台的布局。
-- Windows x64 已和原仓库的 Rust CLI 实跑对照。POSIX 布局已和用 Rust 生成的序列化向量对照。Linux 和 macOS 的原生元数据读取仍待在对应系统上实跑。
+- Windows x64 已与 Rust 实跑对照。Ubuntu 24.04 的 x64 和 arm64 各通过 20 组，macOS 15 的 x64 和 arm64 各通过 19 组。每组的原生元数据字段和最终哈希均与 Rust 一致。 [Linux 和 macOS 验证记录](https://github.com/punxch/metahash/actions/runs/43168845719)
 
 ## 验证
 
