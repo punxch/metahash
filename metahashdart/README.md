@@ -39,7 +39,14 @@ dart run test/xxh3_test.dart
 dart run test/hash_test.dart
 dart run test/url_test.dart
 dart run test/support_types_test.dart
-dart run test/native_test.dart /absolute/path/to/rust/metahash
 ```
 
-最后一条命令让两个 CLI 对同一批临时文件、目录和路径运行，并逐个比较输出。省略 Rust 可执行文件参数时，仅运行 Dart 的原生元数据和 CLI 检查。
+在仓库根目录构建 Rust CLI 和元数据参考程序，再从 Dart 项目目录运行原生对照。Windows 下使用相应的 `.exe` 路径。
+
+```sh
+cargo build --bin metahash --example native_reference
+cd metahashdart
+dart run test/native_test.dart ../target/debug/metahash ../target/debug/examples/native_reference
+```
+
+测试让两种实现读取同一批临时文件、目录和符号链接，逐项比较规范路径字节、文件大小、创建时间、状态变更时间、修改时间和最终哈希。只传第一个参数时对照两个 CLI 的哈希。省略两个参数时运行 Dart 自检。

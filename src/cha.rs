@@ -3,6 +3,12 @@ use std::{
     time::SystemTime,
 };
 
+#[cfg(unix)]
+use std::{
+    os::unix::fs::MetadataExt,
+    time::{Duration, UNIX_EPOCH},
+};
+
 use crate::unix_either;
 
 #[derive(Clone, Debug)]
